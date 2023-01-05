@@ -5,6 +5,11 @@
  */
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
+import Onboard from '@web3-onboard/core';
+import phantomModule from '@web3-onboard/phantom';
+import PhantomLogo from './icons/phantom-logo.js'
+import { init, useConnectWallet} from '@web3-onboard/react';
+
 
 import { getProvider, sendTransaction } from './utils';
 
@@ -37,6 +42,20 @@ declare global {
 let accounts = [];
 const message = 'To avoid digital dognappers, sign below to authenticate with CryptoCorgis.';
 const sleep = (timeInMS) => new Promise((resolve) => setTimeout(resolve, timeInMS));
+const phantom = phantomModule()
+const rpcURL = 'https://autumn-intensive-reel.discover.quiknode.pro/7ecd17ece2507371e4a53058c2f606a307983207/'
+
+init({
+	wallets: [phantom],
+	chains: [
+		{
+		  id: '0x1',
+		  token: 'ETH',
+		  label: 'Ethereum Mainnet',
+		  rpcUrl: rpcURL
+		}
+	],
+})
 
 // =============================================================================
 // Typedefs
@@ -72,6 +91,7 @@ interface Props {
 const useProps = (): Props => {
   const [provider, setProvider] = useState<Web3Provider | null>(null);
   const [logs, setLogs] = useState<TLog[]>([]);
+  const [{wallet, connecting}, connect] = useConnectWallet()
 
   const createLog = useCallback(
     (log: TLog) => {
@@ -215,7 +235,7 @@ const useProps = (): Props => {
     if (!provider) return;
 
     try {
-      accounts = await provider.send('eth_requestAccounts', []);
+      await connect()
       createLog({
         status: 'success',
         method: 'connect',
